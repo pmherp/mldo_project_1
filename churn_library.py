@@ -58,7 +58,18 @@ def import_data(pth='./data/bank_data.csv'):
 
         return None
 
-    
+def generate_hist_plot(column, pth):
+    '''
+    creates and saves histplot
+    input:
+        column: (pd.DataFrame.column)
+        pth: (str) path to save plot image as png
+    '''
+    #generate hist plot for churn column in df
+    plt.figure(figsize=(20,10)) 
+    column.hist()
+    #save churn hist plot in ./images/eda
+    plt.savefig(pth)
 
 
 def perform_eda(df):
@@ -89,8 +100,49 @@ def perform_eda(df):
         logging.error('ERROR: getting shape of dataframe failed. Wrong dtype.')
 
     try:
+        #test if "Attrition_Flag" column exists in df
+        assert df.columns.isin(['Attrition_Flag']).any()
+
+        #logging for success
+        logging.info('SUCCESS: Attrition_Flag column exists. Able to generate churn column')
+
+        #generate output column "churn"
         df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
     except AssertionError:
+        logging.error('ERROR: Attrition_Flag column does not exist. Unable to generate churn column.')
+    
+    try:
+        #test for whether path exists
+        assert os.path.exists('./images/eda')
+
+        #test for column needed to plot churn
+        assert df.columns.isin(['Churn', 'Customer_Age', 'Marital_Status', 'Total_Trans_Ct']).any()
+
+        #success message if path exists
+        logging.info('SUCCESS: path to store image in exists and column needed to plot too')
+
+        #generate hist plot for churn column in df
+        generate_hist_plot(df['Churn'], './images/eda/churn_histplot.png')
+        
+        #generate hist plot for customer_age in df
+        generate_hist_plot(df['Customer_Age'], './images/eda/customer_age_histplot.png')
+
+        #generate bar chart for marital status
+        plt.figure(figsize=(20,10)) 
+        df['Marital_Status'].value_counts('normalize').plot(kind='bar')
+        plt.savefig('./images/eda/marital_status_barchart.png')
+
+        #Show distributions of 'Total_Trans_Ct' and add a smooth curve obtained using a kernel density estimate
+        plt.figure(figsize=(20,10)) 
+        sns.histplot(df['Total_Trans_Ct'], stat='density', kde=True)
+        plt.savefig('./images/eda/total_trans_ct_histplot.png')
+
+        #generate heatmap correlation plot
+        plt.figure(figsize=(20,10)) 
+        sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths = 2)
+        plt.savefig('./images/eda/correlation_plot.png')
+    except AssertionError:
+        logging.error('ERROR: wrong path to save plot into. Columns "Churn", "Customer_Age", "Marital_Status", "Total_Trans_Ct" not in DataFrame.')
 
 
 def encoder_helper(df, category_lst, response):
