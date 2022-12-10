@@ -14,8 +14,8 @@ Date: 10.12.2022
 # import libraries
 import os
 import logging
+import time
 import seaborn as sns
-from sklearn import metrics
 from sklearn.metrics import classification_report, plot_roc_curve
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
@@ -33,7 +33,7 @@ sns.set()
 
 
 logging.basicConfig(
-    filename='./logs/churn_library.log',
+    filename=f"./logs/churn_library_{time.strftime('%b_%d_%Y_%H_%M_%S')}.log",
     level=logging.INFO,
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s'
@@ -108,6 +108,7 @@ def generate_hist_plot(column, pth):
     column.hist()
     # save churn hist plot in ./images/eda
     plt.savefig(pth)
+    plt.close()
 
 
 def perform_eda(df):
@@ -140,12 +141,14 @@ def perform_eda(df):
     plt.figure('Figure 5', figsize=(10, 8))
     df['Marital_Status'].value_counts('normalize').plot(kind='bar')
     plt.savefig('./images/eda/marital_status_barchart.png')
+    plt.close()
 
     # Show distributions of 'Total_Trans_Ct' and add a smooth curve obtained
     # using a kernel density estimate
     plt.figure('Figure 6', figsize=(10, 8))
     sns.histplot(df['Total_Trans_Ct'], stat='density', kde=True)
     plt.savefig('./images/eda/total_trans_ct_histplot.png')
+    plt.close()
 
     # generate heatmap correlation plot
     plt.figure('Figure 7', figsize=(10, 8))
@@ -156,6 +159,7 @@ def perform_eda(df):
         cmap='Dark2_r',
         linewidths=2)
     plt.savefig('./images/eda/correlation_plot.png')
+    plt.close()
 
 
 def encoder_helper(df, category_lst, response):
@@ -261,6 +265,7 @@ def classification_report_image(y_train,
     returns:
         - None
     '''
+    plt.figure('Figure 16')
     plt.rc('figure', figsize=(10, 8))
     # plt.text(0.01, 0.05, str(model.summary()), {'fontsize': 12}) old approach
     plt.text(0.01, 1.25, str('Random Forest Train'), {
@@ -274,7 +279,9 @@ def classification_report_image(y_train,
     plt.axis('off')
     # save plot
     plt.savefig(f'{output_pth}random_forrest_classification_report.png')
+    plt.close()
 
+    plt.figure('Figure 16')
     plt.rc('figure', figsize=(10, 8))
     plt.text(0.01, 1.25, str('Logistic Regression Train'),
              {'fontsize': 10}, fontproperties='monospace')
@@ -287,6 +294,7 @@ def classification_report_image(y_train,
     plt.axis('off')
     # save plot
     plt.savefig(f'{output_pth}logistic_regression_classification_report.png')
+    plt.close()
 
 
 def feature_importance_plot(model, X_data, output_pth):
@@ -308,6 +316,7 @@ def feature_importance_plot(model, X_data, output_pth):
     shap.summary_plot(shap_values, X_data, plot_type="bar", show=False)
     # save plot
     plt.savefig(f'{output_pth}shap_summary.png')
+    plt.close()
 
     # Calculate feature importances
     importances = model.feature_importances_
@@ -333,6 +342,7 @@ def feature_importance_plot(model, X_data, output_pth):
 
     # save plot
     plt.savefig(f'{output_pth}feature_importance.png')
+    plt.close()
 
 
 def train_models(X_train, X_test, y_train, y_test):
@@ -375,12 +385,13 @@ def train_models(X_train, X_test, y_train, y_test):
     # plot for AUC
     # store roc curve with score
     lrc_plot = plot_roc_curve(lrc, X_test, y_test)
-    plt.figure('Figure 3', figsize=(15, 8))
+    plt.figure('Figure 90', figsize=(15, 8))
     axis = plt.gca()
     _ = plot_roc_curve(cv_rfc.best_estimator_,
                        X_test, y_test, ax=axis, alpha=0.8)
     lrc_plot.plot(ax=axis, alpha=0.8)
     plt.savefig('./images/results/roc_curve_plot.png')
+    plt.close()
 
     # save best model
     joblib.dump(cv_rfc.best_estimator_, './models/rfc_model.pkl')
