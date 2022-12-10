@@ -19,7 +19,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 
-from scikitplot.metrics import plot_roc
+
 from sklearn.metrics import classification_report
 import sklearn.metrics as metrics
 
@@ -149,7 +149,7 @@ def generate_hist_plot(column, pth):
         None
     '''
     #generate hist plot for churn column in df
-    plt.figure(figsize=(20,10)) 
+    fig_4 = plt.figure('Figure 4', figsize=(20,10)) 
     column.hist()
     #save churn hist plot in ./images/eda
     plt.savefig(pth)
@@ -186,7 +186,7 @@ def perform_eda(df):
         #test for whether path exists
         assert os.path.exists('./images/eda')
 
-        #test for column needed to plot churn
+        #test for column needed for eda plots
         assert df.columns.isin(['Churn', 'Customer_Age', 'Marital_Status', 'Total_Trans_Ct']).any()
 
         #success message if path exists
@@ -199,18 +199,18 @@ def perform_eda(df):
         generate_hist_plot(df['Customer_Age'], './images/eda/customer_age_histplot.png')
 
         #generate bar chart for marital status
-        plt.figure(figsize=(20,10)) 
+        plt.figure('Figure 5', figsize=(10, 8)) 
         df['Marital_Status'].value_counts('normalize').plot(kind='bar')
         plt.savefig('./images/eda/marital_status_barchart.png')
 
         #Show distributions of 'Total_Trans_Ct' and add a smooth curve obtained using a kernel density estimate
-        plt.figure(figsize=(20,10)) 
+        plt.figure('Figure 6', figsize=(10, 8)) 
         sns.histplot(df['Total_Trans_Ct'], stat='density', kde=True)
         plt.savefig('./images/eda/total_trans_ct_histplot.png')
 
         #generate heatmap correlation plot
-        plt.figure(figsize=(20,10)) 
-        sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths = 2)
+        plt.figure('Figure 7', figsize=(10, 8)) 
+        sns.heatmap(df.corr(numeric_only=True), annot=False, cmap='Dark2_r', linewidths = 2)
         plt.savefig('./images/eda/correlation_plot.png')
     except AssertionError:
         logging.error('ERROR: wrong path to save plots into. Columns "Churn", "Customer_Age", "Marital_Status" or "Total_Trans_Ct" not in DataFrame.')
@@ -231,7 +231,7 @@ def encoder_helper(df, category_lst, response):
     try:
         for item in category_lst:
             lst = []
-            group = df.groupby(item).mean()[response]
+            group = df.groupby(item).mean(numeric_only=True)[response]
 
             for val in df[item]:
                 lst.append(group.loc[val])
@@ -305,7 +305,7 @@ def classification_report_image(y_train,
     output:
              None
     '''
-    plt.rc('figure', figsize=(5, 5))
+    plt.rc('figure', figsize=(10, 8))
     #plt.text(0.01, 0.05, str(model.summary()), {'fontsize': 12}) old approach
     plt.text(0.01, 1.25, str('Random Forest Train'), {'fontsize': 10}, fontproperties = 'monospace')
     plt.text(0.01, 0.05, str(classification_report(y_test, y_test_preds_rf)), {'fontsize': 10}, fontproperties = 'monospace') # approach improved by OP -> monospace!
@@ -315,7 +315,7 @@ def classification_report_image(y_train,
     #save plot
     plt.savefig(f'{output_pth}random_forrest_classification_report.png')
 
-    plt.rc('figure', figsize=(5, 5))
+    plt.rc('figure', figsize=(10, 8))
     plt.text(0.01, 1.25, str('Logistic Regression Train'), {'fontsize': 10}, fontproperties = 'monospace')
     plt.text(0.01, 0.05, str(classification_report(y_train, y_train_preds_lr)), {'fontsize': 10}, fontproperties = 'monospace') # approach improved by OP -> monospace!
     plt.text(0.01, 0.6, str('Logistic Regression Test'), {'fontsize': 10}, fontproperties = 'monospace')
@@ -337,11 +337,14 @@ def feature_importance_plot(model, X_data, output_pth):
     output:
              None
     '''
-    #explainer = shap.TreeExplainer(model.best_estimator_)
-    #shap_values = explainer.shap_values(X_data)
-    #shap.summary_plot(shap_values, X_data, plot_type="bar", show=False)
+    #create figure 1
+    plt.figure('Figure 1', figsize=(10, 8))
+    #generate shap summary_plot
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_data)
+    shap.summary_plot(shap_values, X_data, plot_type="bar", show=False)
     #save plot
-    #plt.safefig(f'{output_pth}shap_values.png')
+    plt.savefig(f'{output_pth}shap_summary.png')
 
     # Calculate feature importances
     importances = model.feature_importances_
@@ -352,8 +355,8 @@ def feature_importance_plot(model, X_data, output_pth):
     # Rearrange feature names so they match the sorted feature importances
     names = [X_data.columns[i] for i in indices]
 
-    # Create plot
-    plt.figure(figsize=(20,5))
+    #create figure 2
+    plt.figure('Figure 2', figsize=(10, 8))
 
     # Create plot title
     plt.title("Feature Importance")
@@ -407,11 +410,15 @@ def train_models(X_train, X_test, y_train, y_test):
     #plot for AUC
     #plot_roc_curve is depricated since scikit version 0.23
     #alternative
+    #create figure 2
+    fig_3 = plt.figure('Figure 3', figsize=(10, 8))
     fpr_rf, tpr_rf, threshold = metrics.roc_curve(y_test, y_test_preds_rf)
     fpr_lr, tpr_lr, threshold = metrics.roc_curve(y_test, y_test_preds_lr)
     roc_auc_rf = metrics.auc(fpr_rf, tpr_rf)
     roc_auc_lr = metrics.auc(fpr_lr, tpr_lr)
-    plt.plot(fpr_rf, tpr_rf, 'b', label = 'AUC = %0.2f' % roc_auc_rf)
+    ax = plt.axes()
+    ax.set_facecolor('silver')
+    plt.plot(fpr_rf, tpr_rf, label = 'AUC = %0.2f' % roc_auc_rf, color='blue')
     plt.plot(fpr_lr, tpr_lr, label = 'AUC = %0.2f' % roc_auc_lr, color='orange')
     plt.legend(loc = 'lower right')
     plt.plot([0, 1], [0, 1],'r--')
