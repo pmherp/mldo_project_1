@@ -34,7 +34,7 @@ def test_import(import_data):
     '''
     try:
         df = import_data("./data/bank_data.csv")
-        logging.info("SUCCESS: Testing import_data function.")
+        logging.info("SUCCESS: testing import_data function.")
     except FileNotFoundError as err:
         logging.error("ERROR testing import_data: The file wasn't found")
         raise err
@@ -273,6 +273,9 @@ if __name__ == "__main__":
 
     # test generating output column function
     DF = test_generate_churn_column(cls.generate_churn_column, DF)
+
+    # test generating histogram plots
+    test_generate_hist_plot(cls.generate_hist_plot, DF)
 
     # test perform exploratory data analysis function
     test_eda(cls.perform_eda, DF)

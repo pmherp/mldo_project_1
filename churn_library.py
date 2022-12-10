@@ -16,7 +16,7 @@ import os
 import logging
 import seaborn as sns
 from sklearn import metrics
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, plot_roc_curve
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -33,7 +33,7 @@ sns.set()
 
 
 logging.basicConfig(
-    filename='./logs/test_results.log',
+    filename='./logs/churn_library.log',
     level=logging.INFO,
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s'
@@ -373,24 +373,13 @@ def train_models(X_train, X_test, y_train, y_test):
     y_test_preds_lr = lrc.predict(X_test)
 
     # plot for AUC
-    # plot_roc_curve is depricated since scikit version 0.23
-    # alternative
-    # create figure 2
-    plt.figure('Figure 3', figsize=(10, 8))
-    fpr_rf, tpr_rf = metrics.roc_curve(y_test, y_test_preds_rf)[0:2]
-    fpr_lr, tpr_lr = metrics.roc_curve(y_test, y_test_preds_lr)[0:2]
-    roc_auc_rf = metrics.auc(fpr_rf, tpr_rf)
-    roc_auc_lr = metrics.auc(fpr_lr, tpr_lr)
-    ax = plt.axes()
-    ax.set_facecolor('silver')
-    plt.plot(fpr_rf, tpr_rf, label=f'AUC = {roc_auc_rf}', color='blue')
-    plt.plot(fpr_lr, tpr_lr, label=f'AUC = {roc_auc_lr}', color='orange')
-    plt.legend(loc='lower right')
-    plt.plot([0, 1], [0, 1], 'r--')
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.ylabel('True Positive Rate')
-    plt.xlabel('False Positive Rate')
+    # store roc curve with score
+    lrc_plot = plot_roc_curve(lrc, X_test, y_test)
+    plt.figure('Figure 3', figsize=(15, 8))
+    axis = plt.gca()
+    _ = plot_roc_curve(cv_rfc.best_estimator_,
+                       X_test, y_test, ax=axis, alpha=0.8)
+    lrc_plot.plot(ax=axis, alpha=0.8)
     plt.savefig('./images/results/roc_curve_plot.png')
 
     # save best model

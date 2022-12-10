@@ -62,7 +62,7 @@ To run __churn_library.py__ that holds the entire Data Science Process Code, run
 ```sh
 python3 churn_library.py
 ```
-This will automatically run the entire code and log the results in a file named __test_results.log__ inside the folder __logs__.
+This will automatically run the entire code and log the results in a file named __churn_library.log__ inside the folder __logs__.
 
 To test the functions in __churn_library.py__, run the following in your terminal:
 ```sh
