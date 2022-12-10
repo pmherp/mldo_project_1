@@ -26,7 +26,7 @@ import sklearn.metrics as metrics
 import logging
 
 logging.basicConfig(
-        filename='./logs/test_results.log',
+        filename='./logs/churn_library.log',
         level=logging.INFO,
         filemode='w',
         format='%(name)s - %(levelname)s - %(message)s'
@@ -41,24 +41,10 @@ def import_data(pth='./data/bank_data.csv'):
     output:
         df: pandas dataframe
     '''
-    try:
-        #test for filepath dtype string
-        assert isinstance(pth, str)
+    #read in csv file from given path and store in pandas dataframe
+    df = pd.read_csv(pth)
 
-        #test if file exists in path
-        assert os.path.exists(pth)
-
-        #log success messages
-        logging.info('SUCCESS: fileinput is of type string and file exists at given path')
-
-        #read in csv file from given path and store in pandas dataframe
-        df = pd.read_csv(pth)
-
-        return df
-    except AssertionError:
-        logging.error('ERROR: input is not of dtype string or file does not exist')
-
-        return None
+    return df
 
 def generate_churn_column(df):
     '''
@@ -69,21 +55,10 @@ def generate_churn_column(df):
     output:
         df: (pd.DataFrame)
     '''
-    try:
-        #test if "Attrition_Flag" column exists in df
-        assert df.columns.isin(['Attrition_Flag']).any()
+    #generate output column "churn"
+    df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
 
-        #logging for success
-        logging.info('SUCCESS: Attrition_Flag column exists. Able to generate churn column')
-
-        #generate output column "churn"
-        df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
-
-        return df
-    except AssertionError:
-        logging.error('ERROR: Attrition_Flag column does not exist. Unable to generate churn column.')
-
-        return None
+    return df
     
 
 def split_cat_quant_cols(df):
@@ -97,46 +72,16 @@ def split_cat_quant_cols(df):
         cat_columns: (list)
         quant_columns: (list)
     '''
-    try:
-        #test if columns exist in input df
-        assert set(['Gender',
-            'Education_Level',
-            'Marital_Status',
-            'Income_Category',
-            'Card_Category',
-            'Customer_Age',
-            'Dependent_count', 
-            'Months_on_book',
-            'Total_Relationship_Count', 
-            'Months_Inactive_12_mon',
-            'Contacts_Count_12_mon', 
-            'Credit_Limit', 
-            'Total_Revolving_Bal',
-            'Avg_Open_To_Buy', 
-            'Total_Amt_Chng_Q4_Q1', 
-            'Total_Trans_Amt',
-            'Total_Trans_Ct', 
-            'Total_Ct_Chng_Q4_Q1', 
-            'Avg_Utilization_Ratio']).issubset(df.columns)
+    #seperate categorical and object columns and put into list
+    cat_columns = df.select_dtypes(include=['object', 'category']).columns.tolist()
 
-        #loging message for success
-        logging.info('SUCCESS: all columns are in DataFrame. Split into categorical and quantitive is possible.')
+    #seperate numeric columns and put into list
+    quant_columns = df.select_dtypes(include=['number']).columns.tolist()
+    #drop unneeded columns from quant columns list
+    quant_columns = quant_columns[2:]
 
-        #seperate categorical and object columns and put into list
-        cat_columns = df.select_dtypes(include=['object', 'category']).columns.tolist()
+    return cat_columns, quant_columns
 
-        #seperate numeric columns and put into list
-        quant_columns = df.select_dtypes(include=['number']).columns.tolist()
-        #drop unneeded columns from quant columns list
-        quant_columns = quant_columns[2:]
-
-        return cat_columns, quant_columns
-    except AssertionError:
-        logging.error('ERROR: At least one column is missing from DataFrame. Split into categorical and quantitive is not possible.')
-
-        return None
-
-    
 
 def generate_hist_plot(column, pth):
     '''
@@ -149,7 +94,7 @@ def generate_hist_plot(column, pth):
         None
     '''
     #generate hist plot for churn column in df
-    fig_4 = plt.figure('Figure 4', figsize=(20,10)) 
+    plt.figure('Figure 4', figsize=(20,10)) 
     column.hist()
     #save churn hist plot in ./images/eda
     plt.savefig(pth)
@@ -164,56 +109,35 @@ def perform_eda(df):
     output:
         None
     '''
-    try:
-        #test for df dtype DataFrame
-        assert isinstance(df, pd.DataFrame)
+    #get shape of df
+    print(f'The dataframe has {df.shape[0]} rows and {df.shape[1]} columns')
 
-        #logging success message
-        logging.info('SUCCESS: df is of type pd.DataFrame')
+    #get sum of empty rows for each column
+    print(f'Sum of empty rows for each column in df:\n{df.isnull().sum()}')
 
-        #get shape of df
-        print(f'The dataframe has {df.shape[0]} rows and {df.shape[1]} columns')
+    #get description for df
+    print(f'Basic description for each column in df:\n{df.describe()}')
 
-        #get sum of empty rows for each column
-        print(f'Sum of empty rows for each column in df:\n{df.isnull().sum()}')
-
-        #get description for df
-        print(f'Basic description for each column in df:\n{df.describe()}')
-    except AssertionError:
-        logging.error('ERROR: getting shape of dataframe failed. Wrong dtype.')
-
-    try:
-        #test for whether path exists
-        assert os.path.exists('./images/eda')
-
-        #test for column needed for eda plots
-        assert df.columns.isin(['Churn', 'Customer_Age', 'Marital_Status', 'Total_Trans_Ct']).any()
-
-        #success message if path exists
-        logging.info('SUCCESS: path to store image in exists and column needed to plot too')
-
-        #generate hist plot for churn column in df
-        generate_hist_plot(df['Churn'], './images/eda/churn_histplot.png')
+    #generate hist plot for churn column in df
+    generate_hist_plot(df['Churn'], './images/eda/churn_histplot.png')
         
-        #generate hist plot for customer_age in df
-        generate_hist_plot(df['Customer_Age'], './images/eda/customer_age_histplot.png')
+    #generate hist plot for customer_age in df
+    generate_hist_plot(df['Customer_Age'], './images/eda/customer_age_histplot.png')
 
-        #generate bar chart for marital status
-        plt.figure('Figure 5', figsize=(10, 8)) 
-        df['Marital_Status'].value_counts('normalize').plot(kind='bar')
-        plt.savefig('./images/eda/marital_status_barchart.png')
+    #generate bar chart for marital status
+    plt.figure('Figure 5', figsize=(10, 8)) 
+    df['Marital_Status'].value_counts('normalize').plot(kind='bar')
+    plt.savefig('./images/eda/marital_status_barchart.png')
 
-        #Show distributions of 'Total_Trans_Ct' and add a smooth curve obtained using a kernel density estimate
-        plt.figure('Figure 6', figsize=(10, 8)) 
-        sns.histplot(df['Total_Trans_Ct'], stat='density', kde=True)
-        plt.savefig('./images/eda/total_trans_ct_histplot.png')
+    #Show distributions of 'Total_Trans_Ct' and add a smooth curve obtained using a kernel density estimate
+    plt.figure('Figure 6', figsize=(10, 8)) 
+    sns.histplot(df['Total_Trans_Ct'], stat='density', kde=True)
+    plt.savefig('./images/eda/total_trans_ct_histplot.png')
 
-        #generate heatmap correlation plot
-        plt.figure('Figure 7', figsize=(10, 8)) 
-        sns.heatmap(df.corr(numeric_only=True), annot=False, cmap='Dark2_r', linewidths = 2)
-        plt.savefig('./images/eda/correlation_plot.png')
-    except AssertionError:
-        logging.error('ERROR: wrong path to save plots into. Columns "Churn", "Customer_Age", "Marital_Status" or "Total_Trans_Ct" not in DataFrame.')
+    #generate heatmap correlation plot
+    plt.figure('Figure 7', figsize=(10, 8)) 
+    sns.heatmap(df.corr(numeric_only=True), annot=False, cmap='Dark2_r', linewidths = 2)
+    plt.savefig('./images/eda/correlation_plot.png')
 
 
 def encoder_helper(df, category_lst, response):
@@ -228,20 +152,17 @@ def encoder_helper(df, category_lst, response):
     output:
         df: pandas dataframe with new columns for
     '''
-    try:
-        for item in category_lst:
-            lst = []
-            group = df.groupby(item).mean(numeric_only=True)[response]
+    for item in category_lst:
+        lst = []
+        group = df.groupby(item).mean(numeric_only=True)[response]
 
-            for val in df[item]:
-                lst.append(group.loc[val])
+        for val in df[item]:
+            lst.append(group.loc[val])
 
-            name = item + '_' + response
-            df[name] = lst
+        name = item + '_' + response
+        df[name] = lst
 
-        return df
-    except:
-        return None
+    return df
 
 def perform_feature_engineering(df, response):
     '''
@@ -411,7 +332,7 @@ def train_models(X_train, X_test, y_train, y_test):
     #plot_roc_curve is depricated since scikit version 0.23
     #alternative
     #create figure 2
-    fig_3 = plt.figure('Figure 3', figsize=(10, 8))
+    plt.figure('Figure 3', figsize=(10, 8))
     fpr_rf, tpr_rf, threshold = metrics.roc_curve(y_test, y_test_preds_rf)
     fpr_lr, tpr_lr, threshold = metrics.roc_curve(y_test, y_test_preds_lr)
     roc_auc_rf = metrics.auc(fpr_rf, tpr_rf)
