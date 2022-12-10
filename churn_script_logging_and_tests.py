@@ -85,7 +85,7 @@ def test_generate_hist_plot(generate_hist_plot, df):
 
     inputs:
             - generate_hist_plot: (function) that plots histogras
-            df: (pd.DataFrame)
+            - df: (pd.DataFrame)
     returns:
             - None
     '''
@@ -185,7 +185,7 @@ def test_encoder_helper(encoder_helper, category_lst, df):
             - category_lst: (list) with categorical columns
             - df: (pd.DataFrame)
     returns:
-            df: (pd.DataFrame)
+            - df: (pd.DataFrame)
     '''
     df = encoder_helper(df, category_lst, 'Churn')
 

@@ -45,9 +45,9 @@ def import_data(pth='./data/bank_data.csv'):
     returns dataframe for the csv found at pth
 
     inputs:
-        pth: (str) a path to the csv
+        - pth: (str) a path to the csv
     returns:
-        df: (pd.DataFrame)
+        - df: (pd.DataFrame)
     '''
     # read in csv file from given path and store in pandas dataframe
     df = pd.read_csv(pth)
@@ -60,9 +60,9 @@ def generate_churn_column(df):
     generating output column for ML
 
     inputs:
-        df: (pd.DataFrame)
+        - df: (pd.DataFrame)
     returns:
-        df: (pd.DataFrame)
+        - df: (pd.DataFrame)
     '''
     # generate output column "churn"
     df['Churn'] = df['Attrition_Flag'].apply(
@@ -76,10 +76,10 @@ def split_cat_quant_cols(df):
     seperating numerical and categorical columns and storing them in seperate lists
 
     inputs:
-        df: (pd.DataFrame)
+        - df: (pd.DataFrame)
     returns:
-        cat_columns: (list)
-        quant_columns: (list)
+        - cat_columns: (list)
+        - quant_columns: (list)
     '''
     # seperate categorical and object columns and put into list
     cat_columns = df.select_dtypes(
@@ -98,10 +98,10 @@ def generate_hist_plot(column, pth):
     creates and saves histplot.
 
     inputs:
-        column: (pd.DataFrame.column)
-        pth: (str) path to save plot image as png
+        - column: (pd.DataFrame.column)
+        - pth: (str) path to save plot image as png
     returns:
-        None
+        - None
     '''
     # generate hist plot for churn column in df
     plt.figure('Figure 4', figsize=(20, 10))
@@ -115,9 +115,9 @@ def perform_eda(df):
     all eda operations in one function plotting the results
 
     inputs:
-        df: (pd.DataFrame)
+        - df: (pd.DataFrame)
     returns:
-        None
+        - None
     '''
     # get shape of df
     print(f'The dataframe has {df.shape[0]} rows and {df.shape[1]} columns')
@@ -164,11 +164,11 @@ def encoder_helper(df, category_lst, response):
     propotion of churn for each category - associated with cell 15 from the notebook.
 
     inputs:
-        df: (pd.DataFrame)
-        category_lst: (list) of columns that contain categorical features
-        response: (str) of response name [optional argument that could be used for naming variables or index y column]
+        - df: (pd.DataFrame)
+        - category_lst: (list) of columns that contain categorical features
+        - response: (str) of response name [optional argument that could be used for naming variables or index y column]
     returns:
-        df: (pd.DataFrame) with new columns for categorical grouped values by response
+        - df: (pd.DataFrame) with new columns for categorical grouped values by response
     '''
     for item in category_lst:
         lst = []
@@ -249,6 +249,7 @@ def classification_report_image(y_train,
     '''
     produces classification report for training and testing results and stores report as image
     in images folder
+
     inputs:
         - y_train: (np.array) training response values
         - y_test:  (np.array) test response values
@@ -257,7 +258,7 @@ def classification_report_image(y_train,
         - y_test_preds_lr: (np.array) test predictions from logistic regression
         - y_test_preds_rf: (np.array) test predictions from random forest
 
-    output:
+    returns:
         - None
     '''
     plt.rc('figure', figsize=(10, 8))
@@ -337,6 +338,7 @@ def feature_importance_plot(model, X_data, output_pth):
 def train_models(X_train, X_test, y_train, y_test):
     '''
     train, store model results: images + scores, and store models
+
     inputs:
         - X_train: (pd.DataFrame) X training data
         - X_test: (pd.DataFrame) X testing data
